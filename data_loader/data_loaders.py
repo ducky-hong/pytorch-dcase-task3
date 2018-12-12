@@ -35,6 +35,8 @@ class BADDataLoader(BaseDataLoader):
         transform = lambda a: torch.from_numpy(np.expand_dims(a, axis=0)).float()
         self.dataset = FeatureNpyDataset(self.data_dir, train_sets, transform=transform)
         self.validation_dataset = FeatureNpyDataset(self.data_dir, validation_sets, transform=transform)
+
+        print('Fold', fold, train_sets, len(self.dataset), validation_sets, len(self.validation_dataset))
         super(BADDataLoader, self).__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
 
     def split_validation(self):
