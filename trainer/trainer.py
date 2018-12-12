@@ -1,8 +1,8 @@
 import numpy as np
 import torch
-from torchvision.utils import make_grid
 from base import BaseTrainer
 from tqdm import *
+from sklearn.metrics import roc_auc_score
 
 
 class Trainer(BaseTrainer):
