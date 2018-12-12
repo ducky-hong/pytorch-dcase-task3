@@ -47,10 +47,10 @@ class Trainer(BaseTrainer):
         """
         self.model.train()
 
-        tqdm_batch = enumerate(tqdm(self.data_loader, desc="Epoch-" + str(epoch) + "-"))
+        tqdm_batch = tqdm(self.data_loader, desc="Epoch-" + str(epoch) + "-")
     
         total_loss = 0
-        for batch_idx, (data, target) in tqdm_batch:
+        for batch_idx, (data, target) in enumerate(tqdm_batch):
             data, target = data.to(self.device), target.to(self.device)
 
             self.optimizer.zero_grad()
