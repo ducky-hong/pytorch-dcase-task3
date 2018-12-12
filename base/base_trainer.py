@@ -32,6 +32,7 @@ class BaseTrainer:
         self.save_period = cfg_trainer['save_period']
         self.verbosity = cfg_trainer['verbosity']
         self.monitor = cfg_trainer.get('monitor', 'off')
+        self.validation_every = cfg_trainer['validation_every']
 
         # configuration to monitor model performance and save best
         if self.monitor == 'off':
@@ -103,7 +104,7 @@ class BaseTrainer:
 
             # evaluate model performance according to configured metric, save best checkpoint as model_best
             best = False
-            if self.mnt_mode != 'off':
+            if self.mnt_mode != 'off' and epoch % self.validation_every == 0:
                 try:
                     # check whether model performance improved or not, according to specified metric(mnt_metric)
                     improved = (self.mnt_mode == 'min' and log[self.mnt_metric] < self.mnt_best) or \

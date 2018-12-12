@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from torchvision.utils import make_grid
 from base import BaseTrainer
+from tqdm import *
 
 
 class Trainer(BaseTrainer):
@@ -45,10 +46,11 @@ class Trainer(BaseTrainer):
             The metrics in log must have the key 'metrics'.
         """
         self.model.train()
+
+        tqdm_batch = tqdm(enumerate(self.data_loader), desc="Epoch-" + str(epoch) + "-")
     
         total_loss = 0
-        total_metrics = np.zeros(len(self.metrics))
-        for batch_idx, (data, target) in enumerate(self.data_loader):
+        for batch_idx, (data, target) in tqdm_batch:
             data, target = data.to(self.device), target.to(self.device)
 
             self.optimizer.zero_grad()
@@ -60,23 +62,14 @@ class Trainer(BaseTrainer):
             self.writer.set_step((epoch - 1) * len(self.data_loader) + batch_idx)
             self.writer.add_scalar('loss', loss.item())
             total_loss += loss.item()
-            total_metrics += self._eval_metrics(output, target)
-
-            if self.verbosity >= 2 and batch_idx % self.log_step == 0:
-                self.logger.info('Train Epoch: {} [{}/{} ({:.0f}%)] Loss: {:.6f}'.format(
-                    epoch,
-                    batch_idx * self.data_loader.batch_size,
-                    self.data_loader.n_samples,
-                    100.0 * batch_idx / len(self.data_loader),
-                    loss.item()))
-                self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
+        
+        tqdm_batch.close()
 
         log = {
             'loss': total_loss / len(self.data_loader),
-            'metrics': (total_metrics / len(self.data_loader)).tolist()
         }
 
-        if self.do_validation:
+        if self.do_validation and epoch % self.validation_every == 0:
             val_log = self._valid_epoch(epoch)
             log = {**log, **val_log}
 
@@ -96,7 +89,8 @@ class Trainer(BaseTrainer):
         """
         self.model.eval()
         total_val_loss = 0
-        total_val_metrics = np.zeros(len(self.metrics))
+        outputs = None
+        targets = None
         with torch.no_grad():
             for batch_idx, (data, target) in enumerate(self.valid_data_loader):
                 data, target = data.to(self.device), target.to(self.device)
@@ -104,13 +98,14 @@ class Trainer(BaseTrainer):
                 output = self.model(data)
                 loss = self.loss(output, target)
 
+                outputs = np.concatenate(outputs, output.numpy()) if outputs else output.numpy()
+                targets = np.concatenate(targets, target.numpy()) if targets else target.numpy()
+
                 self.writer.set_step((epoch - 1) * len(self.valid_data_loader) + batch_idx, 'valid')
                 self.writer.add_scalar('loss', loss.item())
                 total_val_loss += loss.item()
-                total_val_metrics += self._eval_metrics(output, target)
-                self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
 
         return {
             'val_loss': total_val_loss / len(self.valid_data_loader),
-            'val_metrics': (total_val_metrics / len(self.valid_data_loader)).tolist()
+            'val_auc': roc_auc_score(targets, outputs)
         }
