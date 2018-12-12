@@ -32,7 +32,7 @@ class BADDataLoader(BaseDataLoader):
         train_sets = os.listdir(self.data_dir)
         validation_sets = [train_sets.pop(fold)]
         
-        transform = lambda a: torch.from_numpy(a)
+        transform = lambda a: torch.from_numpy(np.expand_dims(a, axis=0))
         self.dataset = FeatureNpyDataset(self.data_dir, train_sets, transform=transform)
         self.validation_dataset = FeatureNpyDataset(self.data_dir, validation_sets, transform=transform)
         super(BADDataLoader, self).__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
