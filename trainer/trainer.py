@@ -98,8 +98,8 @@ class Trainer(BaseTrainer):
                 output = self.model(data)
                 loss = self.loss(output, target)
 
-                outputs = np.concatenate(outputs, output.numpy()) if outputs else output.numpy()
-                targets = np.concatenate(targets, target.numpy()) if targets else target.numpy()
+                outputs = np.concatenate(outputs, output.cpu().numpy()) if outputs else output.cpu().numpy()
+                targets = np.concatenate(targets, target.cpu().numpy()) if targets else target.cpu().numpy()
 
                 self.writer.set_step((epoch - 1) * len(self.valid_data_loader) + batch_idx, 'valid')
                 self.writer.add_scalar('loss', loss.item())
