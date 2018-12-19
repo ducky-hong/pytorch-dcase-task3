@@ -6,6 +6,7 @@ import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
 import model.model as module_arch
+from torchsummary import summary
 from trainer import Trainer
 from utils import Logger
 
@@ -22,7 +23,6 @@ def main(config, resume):
 
     # build model architecture
     model = get_instance(module_arch, 'arch', config)
-    print(model)
     
     # get function handles of loss and metrics
     loss = getattr(module_loss, config['loss'])
@@ -40,6 +40,8 @@ def main(config, resume):
                       valid_data_loader=valid_data_loader,
                       lr_scheduler=lr_scheduler,
                       train_logger=train_logger)
+
+    summary(model, input_size=(1, 64, 501))
 
     trainer.train()
 

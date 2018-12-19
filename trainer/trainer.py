@@ -98,14 +98,17 @@ class Trainer(BaseTrainer):
                 output = self.model(data)
                 loss = self.loss(output, target)
 
-                outputs = np.concatenate(outputs, output.cpu().numpy()) if outputs is not None else output.cpu().numpy()
-                targets = np.concatenate(targets, target.cpu().numpy()) if targets is not None else target.cpu().numpy()
+                outputs = np.concatenate((outputs, output.cpu().numpy()[:,1])) if outputs is not None else output.cpu().numpy()[:,1]
+                targets = np.concatenate((targets, target.cpu().numpy())) if targets is not None else target.cpu().numpy()
 
                 self.writer.set_step((epoch - 1) * len(self.valid_data_loader) + batch_idx, 'valid')
                 self.writer.add_scalar('loss', loss.item())
                 total_val_loss += loss.item()
 
+        val_auc = roc_auc_score(targets, outputs)
+        self.writer.set_step(epoch, 'valid')
+        self.writer.add_scalar('auc', val_auc)
         return {
             'val_loss': total_val_loss / len(self.valid_data_loader),
-            'val_auc': roc_auc_score(targets, outputs)
+            'val_auc': val_auc
         }

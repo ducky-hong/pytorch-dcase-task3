@@ -15,7 +15,7 @@ class FeatureNpyDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, index):
-        filepath = self.data[0]
+        filepath = self.data[index]
         has_bird = int(filepath.split('/')[-2])
         feature = np.load(filepath)
 
@@ -32,7 +32,7 @@ class BADDataLoader(BaseDataLoader):
         train_sets = os.listdir(self.data_dir)
         validation_sets = [train_sets.pop(fold)]
         
-        transform = lambda a: torch.from_numpy(np.expand_dims(a, axis=0)).float()
+        transform = lambda a: torch.from_numpy(np.expand_dims(a[:501,:], axis=0)).float()
         self.dataset = FeatureNpyDataset(self.data_dir, train_sets, transform=transform)
         self.validation_dataset = FeatureNpyDataset(self.data_dir, validation_sets, transform=transform)
 
