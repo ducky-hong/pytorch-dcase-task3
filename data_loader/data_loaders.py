@@ -15,9 +15,9 @@ class FeatureNpyDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, index):
-        filepath = self.data[0]
+        filepath = self.data[index]
         has_bird = int(filepath.split('/')[-2])
-        feature = np.load(filepath)
+        feature = np.load(filepath)[:501,:]
 
         if self.transform:
             feature = self.transform(feature)

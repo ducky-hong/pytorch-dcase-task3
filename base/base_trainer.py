@@ -126,7 +126,7 @@ class BaseTrainer:
                     self.logger.info("Validation performance didn\'t improve for {} epochs. Training stops.".format(self.early_stop))
                     break
 
-            if epoch % self.save_period == 0:
+            if epoch % self.save_period == 0 and best:
                 self._save_checkpoint(epoch, save_best=best)
             
 

@@ -1,6 +1,6 @@
 {
     "name": "BAD_MobileNetV2",
-    "n_gpu": 2,
+    "n_gpu": 1,
     "arch": {
         "type": "MobileNetV2",
         "args": {
@@ -10,8 +10,8 @@
     "data_loader": {
         "type": "BADDataLoader",
         "args":{
-            "data_dir": "/home/ducky/datasets/feature_npy/",
-            "sample_rate": 8000,
+            "data_dir": "/mnt/disks/ssd/datasets/feature_npy/",
+            "sample_rate": 22050,
             "fold": 0,
             "batch_size": 64,
             "shuffle": true,
@@ -20,11 +20,10 @@
         }
     },
     "optimizer": {
-        "type": "RMSprop",
+        "type": "SGD",
         "args":{
-            "lr": 0.045,
-            "momentum": 0.9,
-            "weight_decay": 0.00004
+            "lr": 0.005,
+	    "momentum": 0.98
         }
     },
     "lr_scheduler": {
@@ -35,17 +34,18 @@
     },
     "loss": "cross_entropy",
     "trainer": {
-        "epochs": 200,
+        "epochs": 500,
         "save_dir": "saved/",
-        "save_period": 1,
+        "save_period": 100,
         "verbosity": 2,
         
         "monitor": "min val_loss",
-        "early_stop": 10,
+        "early_stop": 100,
         
         "tensorboardX": true,
         "log_dir": "saved/runs",
 
         "validation_every": 1
-    }
+    },
+    "metrics": []
 }
