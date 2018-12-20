@@ -41,7 +41,10 @@ def main(config, resume):
                       lr_scheduler=lr_scheduler,
                       train_logger=train_logger)
 
-    summary(model, input_size=(1, 64, 501))
+    #print(model)
+    summary(model, input_size=(1, 80, 716))
+    #summary(model, input_size=(1, 64, 501))
+    #summary(model, input_size=(1, 22050*10))
 
     trainer.train()
 

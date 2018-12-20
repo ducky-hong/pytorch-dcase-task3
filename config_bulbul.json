@@ -1,14 +1,13 @@
 {
-    "name": "BAD_MobileNetV2Reduced",
+    "name": "Bulbul",
     "n_gpu": 1,
     "arch": {
-        "type": "MobileNetV2Reduced",
+        "type": "BulbulModel",
         "args": {
-            "n_class": 2
         }
     },
     "data_loader": {
-        "type": "BADDataLoader",
+        "type": "BulbulDataLoader",
         "args":{
             "data_dir": "/home/ducky/datasets/feature_bulbul/",
             "sample_rate": 22050,
@@ -32,7 +31,7 @@
             "gamma": 0.98
         }
     },
-    "loss": "cross_entropy",
+    "loss": "bce_loss",
     "trainer": {
         "epochs": 200,
         "save_dir": "saved/",

@@ -1,19 +1,18 @@
 {
-    "name": "BAD_MobileNetV2Reduced",
+    "name": "BAD_Raw",
     "n_gpu": 1,
     "arch": {
-        "type": "MobileNetV2Reduced",
-        "args": {
-            "n_class": 2
-        }
+        "type": "RawModel",
+	"args": {
+	}
     },
     "data_loader": {
-        "type": "BADDataLoader",
+        "type": "RawDataLoader",
         "args":{
-            "data_dir": "/home/ducky/datasets/feature_bulbul/",
+            "data_dir": "/home/ducky/datasets/npy/",
             "sample_rate": 22050,
-            "fold": 2,
-            "batch_size": 64,
+            "fold": 0,
+            "batch_size": 32,
             "shuffle": true,
             "validation_split": 0.0,
             "num_workers": 2

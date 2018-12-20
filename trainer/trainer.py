@@ -98,8 +98,12 @@ class Trainer(BaseTrainer):
                 output = self.model(data)
                 loss = self.loss(output, target)
 
-                outputs = np.concatenate((outputs, output.cpu().numpy()[:,1])) if outputs is not None else output.cpu().numpy()[:,1]
-                targets = np.concatenate((targets, target.cpu().numpy())) if targets is not None else target.cpu().numpy()
+                if output.size()[1] == 1:
+                    outputs = np.concatenate((outputs, output.cpu().numpy())) if outputs is not None else output.cpu().numpy()
+                    targets = np.concatenate((targets, target.cpu().numpy())) if targets is not None else target.cpu().numpy()
+                else:
+                    outputs = np.concatenate((outputs, output.cpu().numpy()[:,1])) if outputs is not None else output.cpu().numpy()[:,1]
+                    targets = np.concatenate((targets, target.cpu().numpy())) if targets is not None else target.cpu().numpy()
 
                 self.writer.set_step((epoch - 1) * len(self.valid_data_loader) + batch_idx, 'valid')
                 self.writer.add_scalar('loss', loss.item())

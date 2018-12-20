@@ -10,10 +10,10 @@
     "data_loader": {
         "type": "BADDataLoader",
         "args":{
-            "data_dir": "/home/ducky/datasets/feature_npy/",
+            "data_dir": "/home/ducky/datasets/feature_bulbul/",
             "sample_rate": 22050,
-            "fold": 0,
-            "batch_size": 32,
+            "fold": 2,
+            "batch_size": 64,
             "shuffle": true,
             "validation_split": 0.0,
             "num_workers": 2

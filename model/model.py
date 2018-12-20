@@ -2,6 +2,19 @@ import torch.nn as nn
 import math
 from base import BaseModel
 
+def conv1d_bn(inp, oup, stride):
+    return nn.Sequential(
+        nn.Conv1d(inp, oup, 3, stride, 1, bias=False),
+        nn.BatchNorm1d(oup),
+        nn.ReLU6(inplace=True)
+    )
+
+def conv1d_1x1_bn(inp, oup):
+    return nn.Sequential(
+        nn.Conv1d(inp, oup, 1, 1, 0, bias=False),
+        nn.BatchNorm1d(oup),
+        nn.ReLU6(inplace=True)
+    )
 
 def conv_bn(inp, oup, stride):
     return nn.Sequential(
@@ -169,6 +182,118 @@ class MobileNetV2Reduced(BaseModel):
     def forward(self, x):
         x = self.features(x)
         x = x.mean(3).mean(2)
+        x = self.classifier(x)
+        return x
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+                if m.bias is not None:
+                    m.bias.data.zero_()
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
+            elif isinstance(m, nn.Linear):
+                n = m.weight.size(1)
+                m.weight.data.normal_(0, 0.01)
+                m.bias.data.zero_()
+
+class RawModel(BaseModel):
+    def __init__(self):
+        super(RawModel, self).__init__()
+
+        self.features = []
+        self.last_channel = 1280
+
+        settings = [
+                [32, 1, 2],
+                [64, 1, 2],
+                [128, 1, 2],
+                [256, 1, 2],
+                [512, 1, 2],
+                [1024, 1, 2]
+        ]
+
+        input_channel = 1
+        for c, n, s in settings:
+            output_channel = c
+            for i in range(n):
+                self.features.append(conv1d_bn(input_channel, output_channel, s))
+            input_channel = output_channel
+
+        self.features.append(conv1d_1x1_bn(input_channel, self.last_channel))
+        self.features = nn.Sequential(*self.features)
+
+        n_class = 2
+        self.classifier = nn.Sequential(
+            nn.Dropout(0.2),
+            nn.Linear(self.last_channel, n_class),
+        )
+
+        self._initialize_weights()
+
+    def forward(self, x):
+        x = self.features(x)
+        x = x.mean(2)
+        x = self.classifier(x)
+        return x
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv1d):
+                n = m.kernel_size[0] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+                if m.bias is not None:
+                    m.bias.data.zero_()
+            elif isinstance(m, nn.BatchNorm1d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
+            elif isinstance(m, nn.Linear):
+                n = m.weight.size(1)
+                m.weight.data.normal_(0, 0.01)
+                m.bias.data.zero_()
+
+def bulbul_block(inp, oup, kw, kh):
+    return nn.Sequential(
+        nn.Conv2d(inp, oup, (kh, kw), bias=False),
+        nn.LeakyReLU(inplace=True),
+        nn.MaxPool2d((kh, kw))
+    )
+
+def bulbul_dense_block(inp, oup):
+    return nn.Sequential(
+        nn.Dropout(0.5),
+        nn.Linear(inp, oup),
+        nn.LeakyReLU(inplace=True)
+    )
+
+class BulbulModel(BaseModel):
+    def __init__(self):
+        super(BulbulModel, self).__init__()
+
+        self.f1 = bulbul_block(1, 16, 3, 3)
+        self.f2 = bulbul_block(16, 16, 3, 3)
+        self.f3 = bulbul_block(16, 16, 3, 1)
+        self.f4 = bulbul_block(16, 16, 3, 1)
+
+        self.classifier = nn.Sequential(
+            bulbul_dense_block(896, 256),
+            bulbul_dense_block(256, 32),
+            nn.Dropout(0.5),
+            nn.Linear(32, 1),
+            nn.Sigmoid()
+        )
+
+        self._initialize_weights()
+
+    def forward(self, x):
+        x = self.f1(x)
+        x = self.f2(x)
+        x = self.f3(x)
+        x = self.f4(x)
+        x = x.view(-1, 896)
         x = self.classifier(x)
         return x
 
